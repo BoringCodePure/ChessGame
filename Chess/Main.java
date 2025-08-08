@@ -204,16 +204,16 @@ public class Main{
 
        for (int row = 0; row <= 7; row++){
            for (int column = 0; column <= 7; column++){
-//               if (row == 1){
-//                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-//                   board[row][column].setPiece(pawn);
-//                   BlackPieces.add(pawn);
-//               }
-//               if (row == 6){
-//                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-//                   board[row][column].setPiece(pawn);
-//                   WhitePieces.add(pawn);
-//               }
+               if (row == 1){
+                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+                   board[row][column].setPiece(pawn);
+                   BlackPieces.add(pawn);
+               }
+               if (row == 6){
+                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+                   board[row][column].setPiece(pawn);
+                   WhitePieces.add(pawn);
+               }
            }
        }
 
@@ -408,7 +408,6 @@ public class Main{
                 }
             }
         }
-
 
         return true;
     }
@@ -650,7 +649,8 @@ public class Main{
 
         if (isCheckMate((King) king)){
             System.out.println("CHECKMATE");
-
+        } else{
+            System.out.println("NOT CHECKMATE");
         }
 
        // rotateBoard(gridPanel, currentRound);
@@ -975,7 +975,7 @@ class Pawn extends Piece{
         // just the straight forward path, not include attacking;
         if (!doubleMove){
             for (int i = 0; i <= 1; i++){
-                if (row <= 7 && row >= 0){
+                if (row <= 7 && row >= 0  && Main.board[row][column].getPiece() == null){
                     PossiblePath.add(Main.board[row][column]);
                     row = row + dr;
                 } else{
