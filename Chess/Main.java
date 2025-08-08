@@ -98,11 +98,9 @@ class Tile extends JButton implements ComponentListener, MouseListener{
                 HashMap<Tile, Integer> debugAttackedTile = Main.getTileUnderAttack(-(piece.color));
 
             }
-            Debugger.printBoardState();
+
         }
-
     }
-
     @Override
     public void mousePressed(MouseEvent e) {
         if (!Main.underPromotion){
@@ -140,7 +138,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
             }
             Main.Repaint();
             Mouse.PlayerPiece = null;
-            Debugger.printBoardState();
+
         }
 
     }
@@ -153,7 +151,6 @@ class Tile extends JButton implements ComponentListener, MouseListener{
         } else{
             Mouse.TargetTile = null;
         }
-
 
     }
 
@@ -1009,23 +1006,3 @@ class Pawn extends Piece{
 
 }
 
-class Debugger {
-
-    public static void printBoardState() {
-        System.out.println("=== Current Board State ===");
-        for (int r = 0; r < Main.board.length; r++) {
-            for (int c = 0; c < Main.board[r].length; c++) {
-                Piece piece = Main.board[r][c].getPiece();
-                if (piece == null) {
-                    System.out.print("-- ");
-                } else {
-                    String colorCode = (piece.color == -1) ? "W" : "B";
-                    String typeCode = piece.getClass().getSimpleName().substring(0, 1);
-                    System.out.print(colorCode + typeCode + " ");
-                }
-            }
-            System.out.println();
-        }
-        System.out.println("===========================");
-    }
-}
