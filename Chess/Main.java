@@ -204,16 +204,16 @@ public class Main{
 
        for (int row = 0; row <= 7; row++){
            for (int column = 0; column <= 7; column++){
-               if (row == 1){
-                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-                   board[row][column].setPiece(pawn);
-                   BlackPieces.add(pawn);
-               }
-               if (row == 6){
-                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-                   board[row][column].setPiece(pawn);
-                   WhitePieces.add(pawn);
-               }
+//               if (row == 1){
+//                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+//                   board[row][column].setPiece(pawn);
+//                   BlackPieces.add(pawn);
+//               }
+//               if (row == 6){
+//                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+//                   board[row][column].setPiece(pawn);
+//                   WhitePieces.add(pawn);
+//               }
            }
        }
 
@@ -398,11 +398,11 @@ public class Main{
             }
         }
 
-        // given that king has no safe sqaure and the piece that is checking is knight or pawn, then the only way is to capture the attacking pieces
+        // given that king has no safe square and the piece that is checking is knight or pawn, then the only way is to capture the attacking pieces
         if (attack instanceof Knight || attack instanceof Pawn){
             for (Piece eachPiece : myPiece){
                 for (Tile eachTile : eachPiece.getAttackRadius()){
-                    if (eachPiece.CanBeMovedTo(eachTile.row(), eachTile.column())){
+                    if (eachPiece.CanBeMovedTo(attack.row(), attack.column())){
                         return false;
                     }
                 }
@@ -650,9 +650,10 @@ public class Main{
 
         if (isCheckMate((King) king)){
             System.out.println("CHECKMATE");
+
         }
 
-        rotateBoard(gridPanel, currentRound);
+       // rotateBoard(gridPanel, currentRound);
 
     }
 
