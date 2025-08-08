@@ -100,6 +100,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
             }
 
         }
+        System.out.println("GIT");
     }
     @Override
     public void mousePressed(MouseEvent e) {
