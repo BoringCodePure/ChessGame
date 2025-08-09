@@ -73,22 +73,16 @@ class Tile extends JButton implements ComponentListener, MouseListener{
             g2d.dispose();
         }
     }
-
     @Override
     public void componentMoved(ComponentEvent e) {
-
     }
 
     @Override
     public void componentShown(ComponentEvent e) {
-
     }
-
     @Override
     public void componentHidden(ComponentEvent e) {
-
     }
-
     @Override
     public void mouseClicked(MouseEvent e) {
 
@@ -96,9 +90,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
             if (piece != null){
                 Mouse.PlayerPiece = piece;
                 HashMap<Tile, Integer> debugAttackedTile = Main.getTileUnderAttack(-(piece.color));
-
             }
-
         }
         System.out.println("GIT");
     }
@@ -114,8 +106,6 @@ class Tile extends JButton implements ComponentListener, MouseListener{
                 Mouse.PlayerPiece = null;
             }
         }
-
-
     }
 
     @Override
@@ -125,21 +115,18 @@ class Tile extends JButton implements ComponentListener, MouseListener{
                 Mouse.TargetTile.mouseClicked(null);
                 return;
             }
-
             if (Mouse.PlayerPiece != null && Mouse.TargetTile != null){
 
                 // move piece
                 if (Mouse.PlayerPiece.CanBeMovedTo(Mouse.TargetTile.row(), Mouse.TargetTile.column())){
                     Main.AllowMove(this, Mouse.TargetTile);
                     Mouse.PlayerPiece = null;
-
                     System.out.println("MOve");
 
                 }
             }
             Main.Repaint();
             Mouse.PlayerPiece = null;
-
         }
 
     }
@@ -158,8 +145,6 @@ class Tile extends JButton implements ComponentListener, MouseListener{
     @Override
     public void mouseExited(MouseEvent e) {
         Mouse.TargetTile = null;
-        
-
 
     }
 }
@@ -204,16 +189,16 @@ public class Main{
 
        for (int row = 0; row <= 7; row++){
            for (int column = 0; column <= 7; column++){
-               if (row == 1){
-                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-                   board[row][column].setPiece(pawn);
-                   BlackPieces.add(pawn);
-               }
-               if (row == 6){
-                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-                   board[row][column].setPiece(pawn);
-                   WhitePieces.add(pawn);
-               }
+//               if (row == 1){
+//                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+//                   board[row][column].setPiece(pawn);
+//                   BlackPieces.add(pawn);
+//               }
+//               if (row == 6){
+//                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+//                   board[row][column].setPiece(pawn);
+//                   WhitePieces.add(pawn);
+//               }
            }
        }
 
@@ -221,11 +206,11 @@ public class Main{
         // White pieces
         Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
         Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
-        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
-        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
-        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
-        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
-        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
+//        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
+//        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
+//        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
+//        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
+//        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
 
 // Black pieces
         Piece BKing = new King(0, 4, "myPicture/BKing.png", 1);
@@ -238,12 +223,12 @@ public class Main{
 
 // Place pieces on the board
         board[7][4].setPiece(WKing);
-        board[7][0].setPiece(WRook1);
-        board[7][7].setPiece(WRook2);
-        board[7][2].setPiece(WBishop1);
-        board[7][5].setPiece(WBishop2);
-        board[7][1].setPiece(WKnight1);
-        board[7][6].setPiece(WKnight2);
+       board[7][0].setPiece(WRook1);
+//        board[7][7].setPiece(WRook2);
+//        board[7][2].setPiece(WBishop1);
+//        board[7][5].setPiece(WBishop2);
+//        board[7][1].setPiece(WKnight1);
+//        board[7][6].setPiece(WKnight2);
 
         board[0][4].setPiece(BKing);
         board[0][0].setPiece(BRook1);
@@ -259,12 +244,12 @@ public class Main{
 
 // Add to piece lists
         WhitePieces.add(WKing);
-        WhitePieces.add(WRook1);
-        WhitePieces.add(WRook2);
-        WhitePieces.add(WBishop1);
-        WhitePieces.add(WBishop2);
-        WhitePieces.add(WKnight1);
-        WhitePieces.add(WKnight2);
+       WhitePieces.add(WRook1);
+//        WhitePieces.add(WRook2);
+//        WhitePieces.add(WBishop1);
+//        WhitePieces.add(WBishop2);
+//        WhitePieces.add(WKnight1);
+//        WhitePieces.add(WKnight2);
 
         BlackPieces.add(BKing);
         BlackPieces.add(BRook1);
@@ -340,6 +325,36 @@ public class Main{
 
         return attackerList;
 
+    }
+
+
+    public static boolean isStaletMate(King king){
+        ArrayList<Piece> Pieces;
+        if (king.color == -1){
+            Pieces = WhitePieces;
+        } else{
+            Pieces = BlackPieces;
+        }
+
+
+        for (Tile eachTile : king.getAttackRadius()){
+            if (king.CanBeMovedTo(eachTile.row(), eachTile.column())){
+                return false;
+            }
+        }
+
+        // king has no safe square.
+        // Is there any piece that can move in its attack radius?
+
+        for (Piece eachPiece : Pieces){
+            for (Tile eachTile : eachPiece.getAttackRadius()){
+                if (eachPiece.CanBeMovedTo(eachTile.row(), eachTile.column())){
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public static boolean isCheckMate(King king){
@@ -644,6 +659,9 @@ public class Main{
             king = BlackKing;
         }
 
+        if (isStaletMate((King) king)){
+            System.out.println("StaleMate");
+        }
 
 
 
