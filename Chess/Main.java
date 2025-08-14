@@ -44,6 +44,20 @@ class GameState implements Serializable{
 
     public GameState(){
         CurrentRound = -1;
+
+        for (int row = 0; row <= 7; row++){
+            for (int column = 0; column <= 7; column++){
+                if (row == 1){
+                    Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+                    BlackPieces.add(pawn);
+                }
+                if (row == 6){
+                    Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+                    WhitePieces.add(pawn);
+                }
+            }
+        }
+
         // White pieces
         Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
         Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
@@ -321,7 +335,7 @@ public class Main implements Serializable {
                         try (FileOutputStream fileStream = new FileOutputStream(selectedFile + ".ser");
                              ObjectOutputStream outputStream = new ObjectOutputStream(fileStream)) {
 
-                            outputStream.writeObject(new GameState(WhitePieces, BlackPieces, currentRound));
+                            outputStream.writeObject(gameState);
 
                         } catch (IOException ex) {
                             ex.printStackTrace(); // Or show error dialog
@@ -396,20 +410,6 @@ public class Main implements Serializable {
             }
         }
 
-        for (int row = 0; row <= 7; row++){
-            for (int column = 0; column <= 7; column++){
-                if (row == 1){
-                    Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-                    board[row][column].setPiece(pawn);
-                    BlackPieces.add(pawn);
-                }
-                if (row == 6){
-                    Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-                    board[row][column].setPiece(pawn);
-                    WhitePieces.add(pawn);
-                }
-            }
-        }
 
         for (Piece eachPiece : WhitePieces){
             board[eachPiece.row()][eachPiece.column()].setPiece(eachPiece);
@@ -427,20 +427,6 @@ public class Main implements Serializable {
         WhiteKing = gameState.getWhiteKing();
         BlackKing  = gameState.getBlackKing();
 
-        for (int row = 0; row <= 7; row++){
-            for (int column = 0; column <= 7; column++){
-                if (row == 1){
-                    Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-                    board[row][column].setPiece(pawn);
-                    BlackPieces.add(pawn);
-                }
-                if (row == 6){
-                    Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-                    board[row][column].setPiece(pawn);
-                    WhitePieces.add(pawn);
-                }
-            }
-        }
 
         for (Piece eachPiece : WhitePieces){
             board[eachPiece.row()][eachPiece.column()].setPiece(eachPiece);
@@ -450,8 +436,6 @@ public class Main implements Serializable {
         }
 
         Repaint();
-
-
     }
 
 
@@ -705,9 +689,7 @@ public class Main implements Serializable {
 
         nextRound();
         Repaint();
-
     }
-
     public static void summonPiece(Piece newPiece){
         int row = newPiece.row();
         int column = newPiece.column();
@@ -858,6 +840,8 @@ public class Main implements Serializable {
                 eachTile.setPiece(null);
             }
         }
+
+
     }
 
 }
