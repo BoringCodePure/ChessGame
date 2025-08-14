@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -113,6 +114,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
         if (!Main.underPromotion){
             if (Mouse.TargetTile == this){
                 Mouse.TargetTile.mouseClicked(null);
+                Main.Repaint();
                 return;
             }
             if (Mouse.PlayerPiece != null && Mouse.TargetTile != null){
@@ -190,12 +192,12 @@ public class Main{
        for (int row = 0; row <= 7; row++){
            for (int column = 0; column <= 7; column++){
                if (row == 1){
-                   Piece pawn = new Pawn(row, column, "Chess/myPicture/BPawn.png", 1);
+                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
                    board[row][column].setPiece(pawn);
                    BlackPieces.add(pawn);
                }
                if (row == 6){
-                   Piece pawn = new Pawn(row, column, "Chess/myPicture/WPawn.png", -1);
+                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
                    board[row][column].setPiece(pawn);
                    WhitePieces.add(pawn);
                }
@@ -204,22 +206,22 @@ public class Main{
 
 
         // White pieces
-        Piece WKing = new King(7, 4, "Chess/myPicture/WKing.png", -1);
-        Piece WRook1 = new Rook(7, 0, "Chess/myPicture/WRook.png", -1);
-        Piece WRook2 = new Rook(7, 7, "Chess/myPicture/WRook.png", -1);
-        Piece WBishop1 = new Bishop(7, 2, "Chess/myPicture/WBishop.png", -1);
-        Piece WBishop2 = new Bishop(7, 5, "Chess/myPicture/WBishop.png", -1);
-        Piece WKnight1 = new Knight(7, 1, "Chess/myPicture/WKnight.png", -1);
-        Piece WKnight2 = new Knight(7, 6, "Chess/myPicture/WKnight.png", -1);
+        Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
+        Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
+        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
+        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
+        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
+        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
+        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
 
 // Black pieces
-        Piece BKing = new King(0, 4, "Chess/myPicture/BKing.png", 1);
-        Piece BRook1 = new Rook(0, 0, "Chess/myPicture/BRook.png", 1);
-        Piece BRook2 = new Rook(0, 7, "Chess/myPicture/BRook.png", 1);
-        Piece BBishop1 = new Bishop(0, 2, "Chess/myPicture/BBishop.png", 1);
-        Piece BBishop2 = new Bishop(0, 5, "Chess/myPicture/BBishop.png", 1);
-        Piece BKnight1 = new Knight(0, 1, "Chess/myPicture/BKnight.png", 1);
-        Piece BKnight2 = new Knight(0, 6, "Chess/myPicture/BKnight.png", 1);
+        Piece BKing = new King(0, 4, "myPicture/BKing.png", 1);
+        Piece BRook1 = new Rook(0, 0, "myPicture/BRook.png", 1);
+        Piece BRook2 = new Rook(0, 7, "myPicture/BRook.png", 1);
+        Piece BBishop1 = new Bishop(0, 2, "myPicture/BBishop.png", 1);
+        Piece BBishop2 = new Bishop(0, 5, "myPicture/BBishop.png", 1);
+        Piece BKnight1 = new Knight(0, 1, "myPicture/BKnight.png", 1);
+        Piece BKnight2 = new Knight(0, 6, "myPicture/BKnight.png", 1);
 
 // Place pieces on the board
         board[7][4].setPiece(WKing);
@@ -259,8 +261,8 @@ public class Main{
         BlackPieces.add(BKnight1);
         BlackPieces.add(BKnight2);
         // Add Queens
-        Piece WQueen = new Queen(7, 3, "Chess/myPicture/WQueen.png", -1);
-        Piece BQueen = new Queen(0, 3, "Chess/myPicture/BQueen.png", 1);
+        Piece WQueen = new Queen(7, 3, "myPicture/WQueen.png", -1);
+        Piece BQueen = new Queen(0, 3, "myPicture/BQueen.png", 1);
 
 // Place Queens on board
         board[7][3].setPiece(WQueen);
@@ -272,7 +274,7 @@ public class Main{
 
         frame.setContentPane(gridPanel);
         frame.pack();
-        frame.setSize(1100, 1100);// size to fit contents
+        frame.setSize(850, 850);// size to fit contents
         frame.setLocationRelativeTo(null); // center on screen
 
         frame.setVisible(true);
@@ -686,8 +688,9 @@ abstract class Piece{
 
     public Piece(int row, int column, String imagePath, int color){
         try{
+            InputStream input = getClass().getClassLoader().getResourceAsStream(imagePath);
 
-            PieceImage = ImageIO.read(new File(imagePath));
+            PieceImage = ImageIO.read(input);
         } catch (IOException e){
             throw new RuntimeException(e);
         }
@@ -929,17 +932,17 @@ class Pawn extends Piece{
 
         ArrayList<Piece> PieceSet;
         if (this.color == -1){
-            Queen = new Queen(row, column, "Chess/myPicture/WQueen.png", -1);
-            Rook = new Rook(row, column, "Chess/myPicture/WRook.png", - 1);
-            Knight = new Knight(row, column, "Chess/myPicture/WKnight.png", -1);
-            Bishop = new Bishop(row, column, "Chess/myPicture/WBishop.png", -1);
+            Queen = new Queen(row, column, "myPicture/WQueen.png", -1);
+            Rook = new Rook(row, column, "myPicture/WRook.png", - 1);
+            Knight = new Knight(row, column, "myPicture/WKnight.png", -1);
+            Bishop = new Bishop(row, column, "myPicture/WBishop.png", -1);
 
             PieceSet = Main.WhitePieces;
         } else{
-            Rook = new Rook(row, column, "Chess/myPicture/BRook.png", 1);
-            Knight = new Knight(row, column, "Chess/myPicture/BKnight.png", 1);
-            Bishop = new Bishop(row, column, "Chess/myPicture/BBishop.png", 1);
-            Queen = new Queen(row, column, "Chess/myPicture/BQueen.png", 1);
+            Rook = new Rook(row, column, "myPicture/BRook.png", 1);
+            Knight = new Knight(row, column, "myPicture/BKnight.png", 1);
+            Bishop = new Bishop(row, column, "myPicture/BBishop.png", 1);
+            Queen = new Queen(row, column, "myPicture/BQueen.png", 1);
             PieceSet = Main.BlackPieces;
         }
 
@@ -964,7 +967,6 @@ class Pawn extends Piece{
                      Main.underPromotion = false;
                  }
              });
-
             gridPanel.add(PieceOption);
         }
 
