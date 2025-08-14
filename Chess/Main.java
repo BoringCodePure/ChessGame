@@ -113,9 +113,10 @@ class Tile extends JButton implements ComponentListener, MouseListener{
         if (!Main.underPromotion){
             if (Mouse.TargetTile == this){
                 Mouse.TargetTile.mouseClicked(null);
+                Main.Repaint();
                 return;
             }
-            if (Mouse.PlayerPiece != null && Mouse.TargetTile != null){
+            else if (Mouse.PlayerPiece != null && Mouse.TargetTile != null){
 
                 // move piece
                 if (Mouse.PlayerPiece.CanBeMovedTo(Mouse.TargetTile.row(), Mouse.TargetTile.column())){
@@ -125,9 +126,12 @@ class Tile extends JButton implements ComponentListener, MouseListener{
 
                 }
             }
-            Main.Repaint();
             Mouse.PlayerPiece = null;
+            Main.Repaint();
         }
+
+
+
 
     }
 
@@ -189,16 +193,16 @@ public class Main{
 
        for (int row = 0; row <= 7; row++){
            for (int column = 0; column <= 7; column++){
-//               if (row == 1){
-//                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-//                   board[row][column].setPiece(pawn);
-//                   BlackPieces.add(pawn);
-//               }
-//               if (row == 6){
-//                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-//                   board[row][column].setPiece(pawn);
-//                   WhitePieces.add(pawn);
-//               }
+               if (row == 1){
+                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+                   board[row][column].setPiece(pawn);
+                   BlackPieces.add(pawn);
+               }
+               if (row == 6){
+                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+                   board[row][column].setPiece(pawn);
+                   WhitePieces.add(pawn);
+               }
            }
        }
 
@@ -206,11 +210,11 @@ public class Main{
         // White pieces
         Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
         Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
-//        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
-//        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
-//        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
-//        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
-//        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
+        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
+        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
+        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
+        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
+        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
 
 // Black pieces
         Piece BKing = new King(0, 4, "myPicture/BKing.png", 1);
@@ -224,11 +228,11 @@ public class Main{
 // Place pieces on the board
         board[7][4].setPiece(WKing);
        board[7][0].setPiece(WRook1);
-//        board[7][7].setPiece(WRook2);
-//        board[7][2].setPiece(WBishop1);
-//        board[7][5].setPiece(WBishop2);
-//        board[7][1].setPiece(WKnight1);
-//        board[7][6].setPiece(WKnight2);
+        board[7][7].setPiece(WRook2);
+        board[7][2].setPiece(WBishop1);
+        board[7][5].setPiece(WBishop2);
+        board[7][1].setPiece(WKnight1);
+        board[7][6].setPiece(WKnight2);
 
         board[0][4].setPiece(BKing);
         board[0][0].setPiece(BRook1);
@@ -245,11 +249,11 @@ public class Main{
 // Add to piece lists
         WhitePieces.add(WKing);
        WhitePieces.add(WRook1);
-//        WhitePieces.add(WRook2);
-//        WhitePieces.add(WBishop1);
-//        WhitePieces.add(WBishop2);
-//        WhitePieces.add(WKnight1);
-//        WhitePieces.add(WKnight2);
+        WhitePieces.add(WRook2);
+        WhitePieces.add(WBishop1);
+        WhitePieces.add(WBishop2);
+        WhitePieces.add(WKnight1);
+        WhitePieces.add(WKnight2);
 
         BlackPieces.add(BKing);
         BlackPieces.add(BRook1);
@@ -272,7 +276,7 @@ public class Main{
 
         frame.setContentPane(gridPanel);
         frame.pack();
-        frame.setSize(1100, 1100);// size to fit contents
+        frame.setSize(860, 860);// size to fit contents
         frame.setLocationRelativeTo(null); // center on screen
 
         frame.setVisible(true);
