@@ -1,23 +1,125 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Currency;
 import java.util.HashMap;
+import java.util.spi.CurrencyNameProvider;
 
-class Mouse{
+
+class GameState implements Serializable{
+    private int CurrentRound;
+    private ArrayList<Piece> WhitePieces = new ArrayList<>();
+    private ArrayList<Piece> BlackPieces = new ArrayList<>();
+    private Piece WhiteKing;
+    private Piece BlackKing;
+
+    public GameState(ArrayList<Piece> WhitePieces, ArrayList<Piece> BlackPieces, int CurrentRound){
+        this.CurrentRound = CurrentRound;
+        this.WhitePieces = WhitePieces;
+        this.BlackPieces = BlackPieces;
+
+        for (Piece eachPiece : WhitePieces){
+            if (eachPiece instanceof King){
+                WhiteKing = eachPiece;
+                break;
+            }
+        }
+
+        for (Piece eachPiece : BlackPieces){
+            if (eachPiece instanceof King){
+                BlackKing = eachPiece;
+                break;
+            }
+        }
+
+    }
+
+
+    public GameState(){
+        CurrentRound = -1;
+        // White pieces
+        Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
+        Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
+        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
+        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
+        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
+        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
+        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
+
+// Black pieces
+        Piece BKing = new King(0, 4, "myPicture/BKing.png", 1);
+        Piece BRook1 = new Rook(0, 0, "myPicture/BRook.png", 1);
+        Piece BRook2 = new Rook(0, 7, "myPicture/BRook.png", 1);
+        Piece BBishop1 = new Bishop(0, 2, "myPicture/BBishop.png", 1);
+        Piece BBishop2 = new Bishop(0, 5, "myPicture/BBishop.png", 1);
+        Piece BKnight1 = new Knight(0, 1, "myPicture/BKnight.png", 1);
+        Piece BKnight2 = new Knight(0, 6, "myPicture/BKnight.png", 1);
+
+        WhitePieces.add(WKing);
+        WhitePieces.add(WRook1);
+        WhitePieces.add(WRook2);
+        WhitePieces.add(WBishop1);
+        WhitePieces.add(WBishop2);
+        WhitePieces.add(WKnight1);
+        WhitePieces.add(WKnight2);
+
+        BlackPieces.add(BKing);
+        BlackPieces.add(BRook1);
+        BlackPieces.add(BRook2);
+        BlackPieces.add(BBishop1);
+        BlackPieces.add(BBishop2);
+        BlackPieces.add(BKnight1);
+        BlackPieces.add(BKnight2);
+
+
+        Piece WQueen = new Queen(7, 3, "myPicture/WQueen.png", -1);
+        Piece BQueen = new Queen(0, 3, "myPicture/BQueen.png", 1);
+
+        WhitePieces.add(WQueen);
+        BlackPieces.add(BQueen);
+
+        WhiteKing = WKing;
+        BlackKing = BKing;
+
+    }
+
+    public ArrayList<Piece> getWhitePieces(){
+        return WhitePieces;
+    }
+    public ArrayList<Piece> getBlackPieces(){
+        return BlackPieces;
+    }
+
+    public int getCurrentRound(){
+        return CurrentRound;
+    }
+    public Piece getWhiteKing(){
+        return WhiteKing;
+
+    }
+    public Piece getBlackKing(){
+        return BlackKing;
+    }
+
+}
+
+
+class Mouse implements Serializable{
     public static Piece PlayerPiece;
     public static Tile TargetTile;
 
 }
 
 class Tile extends JButton implements ComponentListener, MouseListener{
-    private int row;
-    private int column;
+    private final int row;
+    private final int column;
     private Piece piece;
 
     public Tile(int row, int column){
@@ -151,36 +253,141 @@ class Tile extends JButton implements ComponentListener, MouseListener{
     }
 }
 
-public class Main{
+public class Main implements Serializable {
     public static boolean underPromotion;
-    private static JPanel gridPanel;
-    private static int currentRound = -1;
+    public static int currentRound = -1;
+    public static ArrayList<Piece> WhitePieces;
+    public static ArrayList<Piece> BlackPieces;
     public static Piece WhiteKing;
     public static Piece BlackKing;
     private static final int ROWS = 8;
     private static final int COLS = 8;
     public static Tile[][] board = new Tile[ROWS][COLS];
-    public static ArrayList<Piece> WhitePieces = new ArrayList<>();
-    public static ArrayList<Piece> BlackPieces = new ArrayList<>();
+
     public static void main(String[] args) throws IOException {
+
         // Always start Swing on the Event Dispatch Thread
-        SwingUtilities.invokeLater(Main::createAndShowUI);
+        SwingUtilities.invokeLater(() -> Main.createAndShowUI(new GameState()));
 
     }
+    private static void createAndShowUI(GameState gameState) {
+        currentRound = gameState.getCurrentRound();
+        WhitePieces = gameState.getWhitePieces();
+        BlackPieces = gameState.getBlackPieces();
+        WhiteKing = gameState.getWhiteKing();
+        BlackKing  = gameState.getBlackKing();
 
-
-    private static void createAndShowUI() {
         JFrame frame = new JFrame("6x6 Button Grid");
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-
-        gridPanel = new JPanel(new GridLayout(ROWS, COLS, 0, 0));
+        JPanel MainPanel = new JPanel(new BorderLayout());
+        JPanel gridPanel = new JPanel(new GridLayout(ROWS, COLS, 0, 0));
         gridPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        MainPanel.add(gridPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+
+        MainPanel.add(buttonPanel, BorderLayout.EAST);
+        String[] textArray = {"Save Game", "Reset Game", "Open Game"};
+        buttonPanel.add(Box.createVerticalGlue());
+        JButton button = new JButton("Restart Game");
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                emptyBoard();
+                restartGame(new GameState());
+            }
+        });
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setPreferredSize(new Dimension(150, 50)); // width x height
+        button.setMaximumSize(new Dimension(150, 50)); // prevent resizing
+        buttonPanel.add(button);
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
 
 
 
+        JButton SaveGame = new JButton("Save Game");
+        SaveGame.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e){
+                if (!underPromotion){
+                    JFileChooser fileChooser = new JFileChooser();
+                    int state = fileChooser.showSaveDialog(null);
 
+                    if (state == JFileChooser.APPROVE_OPTION) {
+                        String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
+
+                        try (FileOutputStream fileStream = new FileOutputStream(selectedFile + ".ser");
+                             ObjectOutputStream outputStream = new ObjectOutputStream(fileStream)) {
+
+                            outputStream.writeObject(new GameState(WhitePieces, BlackPieces, currentRound));
+
+                        } catch (IOException ex) {
+                            ex.printStackTrace(); // Or show error dialog
+                        }
+                    }
+                }
+            }
+        });
+        SaveGame.setAlignmentX(Component.CENTER_ALIGNMENT);
+        SaveGame.setPreferredSize(new Dimension(150, 50)); // width x height
+        SaveGame.setMaximumSize(new Dimension(150, 50)); // prevent resizing
+        buttonPanel.add(SaveGame);
+
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
+
+        JButton OpenGame = new JButton("Open Game");
+        OpenGame.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!underPromotion){
+                    JFileChooser fileChooser = new JFileChooser();
+                    int state = fileChooser.showOpenDialog(null);
+
+                    if (state == JFileChooser.APPROVE_OPTION) {
+                        String selectedFile = fileChooser.getSelectedFile().getAbsolutePath();
+
+                        FileInputStream fileStream = null;
+                        try {
+                            fileStream = new FileInputStream(selectedFile);
+                        } catch (FileNotFoundException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        try {
+                            ObjectInputStream outputStream = new ObjectInputStream(fileStream);
+                            GameState data = (GameState) outputStream.readObject();
+                            emptyBoard();
+                            restartGame(data);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        } catch (ClassNotFoundException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+                    }
+                }
+            }
+        });
+        OpenGame.setAlignmentX(Component.CENTER_ALIGNMENT);
+        OpenGame.setPreferredSize(new Dimension(150, 50)); // width x height
+        OpenGame.setMaximumSize(new Dimension(150, 50)); // prevent resizing
+        buttonPanel.add(OpenGame);
+
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
+
+        buttonPanel.add(Box.createVerticalGlue());
+
+        startGame(gridPanel);
+
+        frame.add(MainPanel);
+        frame.pack();
+        frame.setSize(1100, 1000);// size to fit contents
+        frame.setLocationRelativeTo(null); // center on screen
+        frame.setVisible(true);
+    }
+
+    private static void startGame(JPanel gridPanel){
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
                 Tile btn = new Tile(r, c);
@@ -189,97 +396,63 @@ public class Main{
             }
         }
 
-       for (int row = 0; row <= 7; row++){
-           for (int column = 0; column <= 7; column++){
-               if (row == 1){
-                   Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-                   board[row][column].setPiece(pawn);
-                   BlackPieces.add(pawn);
-               }
-               if (row == 6){
-                   Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-                   board[row][column].setPiece(pawn);
-                   WhitePieces.add(pawn);
-               }
-           }
-       }
+        for (int row = 0; row <= 7; row++){
+            for (int column = 0; column <= 7; column++){
+                if (row == 1){
+                    Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+                    board[row][column].setPiece(pawn);
+                    BlackPieces.add(pawn);
+                }
+                if (row == 6){
+                    Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+                    board[row][column].setPiece(pawn);
+                    WhitePieces.add(pawn);
+                }
+            }
+        }
 
+        for (Piece eachPiece : WhitePieces){
+            board[eachPiece.row()][eachPiece.column()].setPiece(eachPiece);
+        }
+        for (Piece eachPiece : BlackPieces){
+            board[eachPiece.row()][eachPiece.column()].setPiece(eachPiece);
+        }
 
-        // White pieces
-        Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
-        Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
-        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
-        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
-        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
-        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
-        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
-
-// Black pieces
-        Piece BKing = new King(0, 4, "myPicture/BKing.png", 1);
-        Piece BRook1 = new Rook(0, 0, "myPicture/BRook.png", 1);
-        Piece BRook2 = new Rook(0, 7, "myPicture/BRook.png", 1);
-        Piece BBishop1 = new Bishop(0, 2, "myPicture/BBishop.png", 1);
-        Piece BBishop2 = new Bishop(0, 5, "myPicture/BBishop.png", 1);
-        Piece BKnight1 = new Knight(0, 1, "myPicture/BKnight.png", 1);
-        Piece BKnight2 = new Knight(0, 6, "myPicture/BKnight.png", 1);
-
-// Place pieces on the board
-        board[7][4].setPiece(WKing);
-       board[7][0].setPiece(WRook1);
-        board[7][7].setPiece(WRook2);
-        board[7][2].setPiece(WBishop1);
-        board[7][5].setPiece(WBishop2);
-        board[7][1].setPiece(WKnight1);
-        board[7][6].setPiece(WKnight2);
-
-        board[0][4].setPiece(BKing);
-        board[0][0].setPiece(BRook1);
-        board[0][7].setPiece(BRook2);
-        board[0][2].setPiece(BBishop1);
-        board[0][5].setPiece(BBishop2);
-        board[0][1].setPiece(BKnight1);
-        board[0][6].setPiece(BKnight2);
-
-// Save king references
-        WhiteKing = WKing;
-        BlackKing = BKing;
-
-// Add to piece lists
-        WhitePieces.add(WKing);
-       WhitePieces.add(WRook1);
-        WhitePieces.add(WRook2);
-        WhitePieces.add(WBishop1);
-        WhitePieces.add(WBishop2);
-        WhitePieces.add(WKnight1);
-        WhitePieces.add(WKnight2);
-
-        BlackPieces.add(BKing);
-        BlackPieces.add(BRook1);
-        BlackPieces.add(BRook2);
-        BlackPieces.add(BBishop1);
-        BlackPieces.add(BBishop2);
-        BlackPieces.add(BKnight1);
-        BlackPieces.add(BKnight2);
-        // Add Queens
-        Piece WQueen = new Queen(7, 3, "myPicture/WQueen.png", -1);
-        Piece BQueen = new Queen(0, 3, "myPicture/BQueen.png", 1);
-
-// Place Queens on board
-        board[7][3].setPiece(WQueen);
-        board[0][3].setPiece(BQueen);
-
-// Add Queens to piece lists
-        WhitePieces.add(WQueen);
-        BlackPieces.add(BQueen);
-
-        frame.setContentPane(gridPanel);
-        frame.pack();
-        frame.setSize(850, 850);// size to fit contents
-        frame.setLocationRelativeTo(null); // center on screen
-
-        frame.setVisible(true);
     }
 
+    private static void restartGame(GameState gameState){
+        currentRound = gameState.getCurrentRound();
+        WhitePieces = gameState.getWhitePieces();
+        BlackPieces = gameState.getBlackPieces();
+        WhiteKing = gameState.getWhiteKing();
+        BlackKing  = gameState.getBlackKing();
+
+        for (int row = 0; row <= 7; row++){
+            for (int column = 0; column <= 7; column++){
+                if (row == 1){
+                    Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
+                    board[row][column].setPiece(pawn);
+                    BlackPieces.add(pawn);
+                }
+                if (row == 6){
+                    Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
+                    board[row][column].setPiece(pawn);
+                    WhitePieces.add(pawn);
+                }
+            }
+        }
+
+        for (Piece eachPiece : WhitePieces){
+            board[eachPiece.row()][eachPiece.column()].setPiece(eachPiece);
+        }
+        for (Piece eachPiece : BlackPieces){
+            board[eachPiece.row()][eachPiece.column()].setPiece(eachPiece);
+        }
+
+        Repaint();
+
+
+    }
 
 
     private static void rotateBoard(JPanel gridpanel, int currentTeam){
@@ -673,17 +846,28 @@ public class Main{
             System.out.println("NOT CHECKMATE");
         }
 
+        System.out.println(WhitePieces);
+
        // rotateBoard(gridPanel, currentRound);
 
     }
 
+    public static void emptyBoard(){
+        for (Tile[] eachRow : board){
+            for (Tile eachTile : eachRow){
+                eachTile.setPiece(null);
+            }
+        }
+    }
+
 }
 
-abstract class Piece{
-    BufferedImage PieceImage;
+abstract class Piece implements Serializable {
+    transient BufferedImage  PieceImage;
     protected int row;
     protected int column;
     protected int color;
+    private String imagePath;
 
 
     public Piece(int row, int column, String imagePath, int color){
@@ -697,6 +881,7 @@ abstract class Piece{
         this.row = row;
         this.column = column;
         this.color = color;
+        this.imagePath = imagePath;
     }
 
     public void updatePosition(int newRow, int newColumn){
@@ -711,6 +896,17 @@ abstract class Piece{
         return column;
     }
     public BufferedImage getImage(){
+
+        if (PieceImage == null){
+            try{
+                InputStream input = getClass().getClassLoader().getResourceAsStream(imagePath);
+                PieceImage = ImageIO.read(input);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
         return PieceImage;
     }
     public abstract ArrayList<Tile> getAttackRadius();
@@ -945,6 +1141,7 @@ class Pawn extends Piece{
             Queen = new Queen(row, column, "myPicture/BQueen.png", 1);
             PieceSet = Main.BlackPieces;
         }
+        PieceSet.remove(this);
 
         Piece[] option = {Queen, Rook, Bishop, Knight};
 
@@ -962,6 +1159,7 @@ class Pawn extends Piece{
                  @Override
                  public void mouseClicked(MouseEvent e) {
                      Main.summonPiece(eachPiece);
+
                      PieceSet.add(eachPiece);
                      newFrame.dispatchEvent(new WindowEvent(newFrame, WindowEvent.WINDOW_CLOSING));
                      Main.underPromotion = false;
@@ -969,7 +1167,6 @@ class Pawn extends Piece{
              });
             gridPanel.add(PieceOption);
         }
-
         newFrame.setContentPane(gridPanel);
         newFrame.pack();
         newFrame.setSize(900, 300);
@@ -1026,6 +1223,5 @@ class Pawn extends Piece{
         return PossiblePath;
 
     }
-
 }
 
