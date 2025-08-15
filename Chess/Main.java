@@ -1,16 +1,11 @@
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Currency;
 import java.util.HashMap;
-import java.util.spi.CurrencyNameProvider;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 
 class GameState implements Serializable{
@@ -206,6 +201,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
         if (!Main.underPromotion){
             if (piece != null){
                 Mouse.PlayerPiece = piece;
+                @SuppressWarnings("unused")
                 HashMap<Tile, Integer> debugAttackedTile = Main.getTileUnderAttack(-(piece.color));
             }
         }
@@ -268,6 +264,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
 }
 
 public class Main implements Serializable {
+    public static GameState gameState = new GameState();
     public static boolean underPromotion;
     public static int currentRound = -1;
     public static ArrayList<Piece> WhitePieces;
@@ -281,10 +278,10 @@ public class Main implements Serializable {
     public static void main(String[] args) throws IOException {
 
         // Always start Swing on the Event Dispatch Thread
-        SwingUtilities.invokeLater(() -> Main.createAndShowUI(new GameState()));
+        SwingUtilities.invokeLater(() -> Main.createAndShowUI());
 
     }
-    private static void createAndShowUI(GameState gameState) {
+    private static void createAndShowUI() {
         currentRound = gameState.getCurrentRound();
         WhitePieces = gameState.getWhitePieces();
         BlackPieces = gameState.getBlackPieces();
@@ -304,6 +301,7 @@ public class Main implements Serializable {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
         MainPanel.add(buttonPanel, BorderLayout.EAST);
+        @SuppressWarnings("unused")
         String[] textArray = {"Save Game", "Reset Game", "Open Game"};
         buttonPanel.add(Box.createVerticalGlue());
         JButton button = new JButton("Restart Game");
@@ -420,7 +418,8 @@ public class Main implements Serializable {
 
     }
 
-    private static void restartGame(GameState gameState){
+    private static void restartGame(GameState new_gameState){
+        gameState = new_gameState;
         currentRound = gameState.getCurrentRound();
         WhitePieces = gameState.getWhitePieces();
         BlackPieces = gameState.getBlackPieces();
@@ -439,6 +438,7 @@ public class Main implements Serializable {
     }
 
 
+    @SuppressWarnings("unused")
     private static void rotateBoard(JPanel gridpanel, int currentTeam){
 
         // if currentTeam is white rotate to white face;
@@ -575,7 +575,7 @@ public class Main implements Serializable {
         // given that king has no safe square and the piece that is checking is knight or pawn, then the only way is to capture the attacking pieces
         if (attack instanceof Knight || attack instanceof Pawn){
             for (Piece eachPiece : myPiece){
-                for (Tile eachTile : eachPiece.getAttackRadius()){
+                for (@SuppressWarnings("unused") Tile eachTile : eachPiece.getAttackRadius()){
                     if (eachPiece.CanBeMovedTo(attack.row(), attack.column())){
                         return false;
                     }
@@ -796,6 +796,7 @@ public class Main implements Serializable {
             currentRound = -1;
         }
 
+        @SuppressWarnings("unused")
         String color;
         if (currentRound == -1){
             color = "White";
@@ -803,11 +804,11 @@ public class Main implements Serializable {
             color = "Black";
         }
 
-        if (getCheckCount(currentRound).size() > 0){
-            System.out.println(color + " King in check check amount = " + getCheckCount(currentRound).toString());
-        } else{
-            System.out.println(color + " King not in check");
-        }
+//        if (getCheckCount(currentRound).size() > 0){
+//            System.out.println(color + " King in check check amount = " + getCheckCount(currentRound).toString());
+//        } else{
+//            System.out.println(color + " King not in check");
+//        }
 
         Piece king;
         if (currentRound == -1){
@@ -828,7 +829,10 @@ public class Main implements Serializable {
             System.out.println("NOT CHECKMATE");
         }
 
-        System.out.println(WhitePieces);
+        //System.out.println(WhitePieces);
+        //System.out.println(BlackPieces);
+
+        System.out.println(ChessConsolePrinter.printBoard(Main.board));
 
        // rotateBoard(gridPanel, currentRound);
 
@@ -855,9 +859,8 @@ abstract class Piece implements Serializable {
 
 
     public Piece(int row, int column, String imagePath, int color){
-        try{
+        try{  
             InputStream input = getClass().getClassLoader().getResourceAsStream(imagePath);
-
             PieceImage = ImageIO.read(input);
         } catch (IOException e){
             throw new RuntimeException(e);
@@ -954,6 +957,7 @@ class King extends Piece{
                     continue;
                 } else{
                     if (row() + dy <= 7 && row() + dy >= 0 && column() + dx <= 7 && column() + dx >= 0){
+                        @SuppressWarnings("unused")
                         Tile tile = Main.board[row() + dy][column() + dx];
                         PossibleTile.add(Main.board[row() + dy][column() + dx]);
                     }
@@ -1208,4 +1212,45 @@ class Pawn extends Piece{
 
     }
 }
+
+class ChessConsolePrinter {
+
+    private static String getSymbol(Piece piece){
+        
+        if (piece instanceof Pawn){
+            return " p ";
+        }
+        if (piece instanceof King){
+            return " k ";
+        }
+        if (piece instanceof Queen){
+            return " Q ";
+        }
+        if (piece instanceof Knight){
+            return " N ";
+        }
+        if (piece instanceof Rook){
+            return " R ";
+        }
+        if (piece instanceof Bishop){
+            return " B ";
+        }
+
+        return "   ";
+    }
+
+    public static String printBoard(Tile[][] board){
+        String boardString = "";
+
+        for (Tile[] subTile : board){
+            boardString = boardString + "[";
+            for (Tile eachTile : subTile){
+                boardString = boardString + getSymbol(eachTile.getPiece());
+            }
+            boardString = boardString + "]\n" ;
+        }
+        return boardString;
+    }
+}
+
 
