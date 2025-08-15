@@ -117,6 +117,10 @@ class GameState implements Serializable{
         return BlackKing;
     }
 
+    public void setCurrentRound(int currentRound) {
+        this.CurrentRound = currentRound;
+    }
+
 }
 
 
@@ -266,11 +270,10 @@ class Tile extends JButton implements ComponentListener, MouseListener{
 public class Main implements Serializable {
     public static GameState gameState = new GameState();
     public static boolean underPromotion;
-    public static int currentRound = -1;
-    public static ArrayList<Piece> WhitePieces;
-    public static ArrayList<Piece> BlackPieces;
-    public static Piece WhiteKing;
-    public static Piece BlackKing;
+    public static ArrayList<Piece> WhitePieces = gameState.getWhitePieces();
+    public static ArrayList<Piece> BlackPieces = gameState.getBlackPieces();
+    public static Piece WhiteKing = gameState.getWhiteKing();
+    public static Piece BlackKing = gameState.getBlackKing();
     private static final int ROWS = 8;
     private static final int COLS = 8;
     public static Tile[][] board = new Tile[ROWS][COLS];
@@ -282,11 +285,7 @@ public class Main implements Serializable {
 
     }
     private static void createAndShowUI() {
-        currentRound = gameState.getCurrentRound();
-        WhitePieces = gameState.getWhitePieces();
-        BlackPieces = gameState.getBlackPieces();
-        WhiteKing = gameState.getWhiteKing();
-        BlackKing  = gameState.getBlackKing();
+       
 
         JFrame frame = new JFrame("6x6 Button Grid");
 
@@ -332,7 +331,8 @@ public class Main implements Serializable {
 
                         try (FileOutputStream fileStream = new FileOutputStream(selectedFile + ".ser");
                              ObjectOutputStream outputStream = new ObjectOutputStream(fileStream)) {
-
+                            System.out.println("Saving game state to " + selectedFile + ".ser");
+                            
                             outputStream.writeObject(gameState);
 
                         } catch (IOException ex) {
@@ -420,7 +420,6 @@ public class Main implements Serializable {
 
     private static void restartGame(GameState new_gameState){
         gameState = new_gameState;
-        currentRound = gameState.getCurrentRound();
         WhitePieces = gameState.getWhitePieces();
         BlackPieces = gameState.getBlackPieces();
         WhiteKing = gameState.getWhiteKing();
@@ -458,10 +457,7 @@ public class Main implements Serializable {
     }
 
     public static ArrayList<Piece> getCheckCount(int kingColor){
-
-
         Tile KingTile;
-
         ArrayList<Piece> EnemyPiece;
         ArrayList<Piece> attackerList = new ArrayList<>();
 
@@ -481,12 +477,9 @@ public class Main implements Serializable {
             }
         }
 
-
         return attackerList;
 
     }
-
-
     public static boolean isStaletMate(King king){
         ArrayList<Piece> Pieces;
         if (king.color == -1){
@@ -726,7 +719,8 @@ public class Main implements Serializable {
         System.out.println("WHITE KING POSITION" + " " + WhiteKing.row() + " " + WhiteKing.column());
         System.out.println("BLACK KING POSITION" + " " + BlackKing.row() + " " + BlackKing.column());
         System.out.println("DEBUG " + tileFrom.row() + "  " + tileFrom.column());
-        if (currentRound != tileFrom.getPiece().color){
+        System.out.println(gameState.getCurrentRound());
+        if (gameState.getCurrentRound() != tileFrom.getPiece().color){
             return false;
         }
 
@@ -790,20 +784,15 @@ public class Main implements Serializable {
     }
 
     public static void nextRound(){
-        if (currentRound == -1){
-            currentRound = 1;
+        if (gameState.getCurrentRound() == -1){
+            gameState.setCurrentRound(1);
         } else{
-            currentRound = -1;
+            gameState.setCurrentRound(-1);
         }
 
-        @SuppressWarnings("unused")
-        String color;
-        if (currentRound == -1){
-            color = "White";
-        } else{
-            color = "Black";
-        }
+        System.out.println("CHANGE GAME STATE TO " + gameState.getCurrentRound());
 
+   
 //        if (getCheckCount(currentRound).size() > 0){
 //            System.out.println(color + " King in check check amount = " + getCheckCount(currentRound).toString());
 //        } else{
@@ -811,7 +800,7 @@ public class Main implements Serializable {
 //        }
 
         Piece king;
-        if (currentRound == -1){
+        if (gameState.getCurrentRound() == -1){
             king = WhiteKing;
         } else{
             king = BlackKing;
@@ -1240,6 +1229,35 @@ class ChessConsolePrinter {
     }
 
     public static String printBoard(Tile[][] board){
+        ArrayList<Piece> DebugWhite = new ArrayList<>(){
+            public String toString(){
+                String start = "[";
+                for (Piece eachPiece : this){
+                    start = start + getSymbol(eachPiece) + ", ";
+                }
+                start = start + " ]";
+                return start;
+            }
+        };
+        ArrayList<Piece> DebugBlack = new ArrayList<>(){
+            public String toString(){
+                String start = "[";
+                for (Piece eachPiece : this){
+                    start = start + getSymbol(eachPiece) + ", ";
+                }
+                start = start + " ]";
+                return start;
+            }
+        };
+        for (Piece eachPiece : Main.WhitePieces){
+            DebugWhite.add(eachPiece);
+        }
+        for (Piece eachPiece : Main.BlackPieces){
+            DebugBlack.add(eachPiece);
+        }
+
+        System.out.println("WHITE PIECE IS " + DebugWhite);
+        System.out.println("BLACK PIECE IS " + DebugBlack);
         String boardString = "";
 
         for (Tile[] subTile : board){
