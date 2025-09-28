@@ -14,89 +14,55 @@ class GameState implements Serializable{
     private ArrayList<Piece> BlackPieces = new ArrayList<>();
     private Piece WhiteKing;
     private Piece BlackKing;
-
-    public GameState(ArrayList<Piece> WhitePieces, ArrayList<Piece> BlackPieces, int CurrentRound){
-        this.CurrentRound = CurrentRound;
-        this.WhitePieces = WhitePieces;
-        this.BlackPieces = BlackPieces;
-
-        for (Piece eachPiece : WhitePieces){
-            if (eachPiece instanceof King){
-                WhiteKing = eachPiece;
-                break;
-            }
-        }
-
-        for (Piece eachPiece : BlackPieces){
-            if (eachPiece instanceof King){
-                BlackKing = eachPiece;
-                break;
-            }
-        }
-
-    }
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 
-    public GameState(){
+    public GameState() {
         CurrentRound = -1;
 
-        for (int row = 0; row <= 7; row++){
-            for (int column = 0; column <= 7; column++){
-                if (row == 1){
-                    Piece pawn = new Pawn(row, column, "myPicture/BPawn.png", 1);
-                    BlackPieces.add(pawn);
-                }
-                if (row == 6){
-                    Piece pawn = new Pawn(row, column, "myPicture/WPawn.png", -1);
-                    WhitePieces.add(pawn);
+        // Pawns
+        for (int row = 0; row <= 7; row++) {
+            for (int col = 0; col <= 7; col++) {
+                if (row == 1) {
+                    BlackPieces.add(new Pawn(row, col, "myPicture/BPawn.png", 1));
+                } else if (row == 6) {
+                    WhitePieces.add(new Pawn(row, col, "myPicture/WPawn.png", -1));
                 }
             }
         }
 
-        // White pieces
-        Piece WKing = new King(7, 4, "myPicture/WKing.png", -1);
-        Piece WRook1 = new Rook(7, 0, "myPicture/WRook.png", -1);
-        Piece WRook2 = new Rook(7, 7, "myPicture/WRook.png", -1);
-        Piece WBishop1 = new Bishop(7, 2, "myPicture/WBishop.png", -1);
-        Piece WBishop2 = new Bishop(7, 5, "myPicture/WBishop.png", -1);
-        Piece WKnight1 = new Knight(7, 1, "myPicture/WKnight.png", -1);
-        Piece WKnight2 = new Knight(7, 6, "myPicture/WKnight.png", -1);
+        // Back ranks
+        setupBackRank(0, 1, "B", BlackPieces);
+        setupBackRank(7, -1, "W", WhitePieces);
+    }
 
-// Black pieces
-        Piece BKing = new King(0, 4, "myPicture/BKing.png", 1);
-        Piece BRook1 = new Rook(0, 0, "myPicture/BRook.png", 1);
-        Piece BRook2 = new Rook(0, 7, "myPicture/BRook.png", 1);
-        Piece BBishop1 = new Bishop(0, 2, "myPicture/BBishop.png", 1);
-        Piece BBishop2 = new Bishop(0, 5, "myPicture/BBishop.png", 1);
-        Piece BKnight1 = new Knight(0, 1, "myPicture/BKnight.png", 1);
-        Piece BKnight2 = new Knight(0, 6, "myPicture/BKnight.png", 1);
+    /**
+     * Helper method to set up the back rank pieces using switch-case.
+     */
+    private void setupBackRank(int row, int direction, String prefix, ArrayList<Piece> targetList) {
+        for (int col = 0; col <= 7; col++) {
+            Piece piece = null;
+            switch (col) {
+                case 0, 7 -> piece = new Rook(row, col, "myPicture/" + prefix + "Rook.png", direction);
+                case 1, 6 -> piece = new Knight(row, col, "myPicture/" + prefix + "Knight.png", direction);
+                case 2, 5 -> piece = new Bishop(row, col, "myPicture/" + prefix + "Bishop.png", direction);
+                case 3 -> piece = new Queen(row, col, "myPicture/" + prefix + "Queen.png", direction);
+                case 4 -> piece = new King(row, col, "myPicture/" + prefix + "King.png", direction);
+            }
 
-        WhitePieces.add(WKing);
-        WhitePieces.add(WRook1);
-        WhitePieces.add(WRook2);
-        WhitePieces.add(WBishop1);
-        WhitePieces.add(WBishop2);
-        WhitePieces.add(WKnight1);
-        WhitePieces.add(WKnight2);
-
-        BlackPieces.add(BKing);
-        BlackPieces.add(BRook1);
-        BlackPieces.add(BRook2);
-        BlackPieces.add(BBishop1);
-        BlackPieces.add(BBishop2);
-        BlackPieces.add(BKnight1);
-        BlackPieces.add(BKnight2);
-
-
-        Piece WQueen = new Queen(7, 3, "myPicture/WQueen.png", -1);
-        Piece BQueen = new Queen(0, 3, "myPicture/BQueen.png", 1);
-
-        WhitePieces.add(WQueen);
-        BlackPieces.add(BQueen);
-
-        WhiteKing = WKing;
-        BlackKing = BKing;
-
+            if (piece != null) {
+                targetList.add(piece);
+                // Store kings separately
+                if (piece instanceof King) {
+                    if (prefix.equals("W")) {
+                        WhiteKing = piece;
+                    } else {
+                        BlackKing = piece;
+                    }
+                }
+            }
+        }
     }
 
     public ArrayList<Piece> getWhitePieces(){
@@ -123,7 +89,6 @@ class GameState implements Serializable{
 
 }
 
-
 class Mouse implements Serializable{
     public static Piece PlayerPiece;
     public static Tile TargetTile;
@@ -134,19 +99,20 @@ class Tile extends JButton implements ComponentListener, MouseListener{
     private final int row;
     private final int column;
     private Piece piece;
+    private Color backGroundColor = null;
 
     public Tile(int row, int column){
         this.row = row;
         this.column = column;
 
         if (row % 2 == column % 2){
+            backGroundColor = new Color(234, 221, 202);
 
-            this.setBackground(new Color(234, 221, 202));
         } else{
-
-            this.setBackground(new Color(92, 64, 51));
+            backGroundColor = new Color(92, 64, 51);
         }
 
+        this.setBackground(backGroundColor);
         this.addComponentListener(this);
         this.addMouseListener(this);
 
@@ -161,6 +127,10 @@ class Tile extends JButton implements ComponentListener, MouseListener{
             this.setIcon(new ImageIcon(IncomingPiece.getImage()));
 
         }
+    }
+
+    public Color getOriginalBackground(){
+        return this.backGroundColor;
     }
 
     public int row(){
@@ -183,7 +153,6 @@ class Tile extends JButton implements ComponentListener, MouseListener{
             BufferedImage blankImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = blankImage.createGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g2d.drawImage(blankImage, 0, 0, width, height, null);
             g2d.drawImage(piece.getImage(),0, 0, width, height, null);
             this.setIcon(new ImageIcon(blankImage));
             g2d.dispose();
@@ -205,11 +174,8 @@ class Tile extends JButton implements ComponentListener, MouseListener{
         if (!Main.underPromotion){
             if (piece != null){
                 Mouse.PlayerPiece = piece;
-                @SuppressWarnings("unused")
-                HashMap<Tile, Integer> debugAttackedTile = Main.getTileUnderAttack(-(piece.color));
             }
         }
-        System.out.println("GIT");
     }
     @Override
     public void mousePressed(MouseEvent e) {
@@ -239,7 +205,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
                 if (Mouse.PlayerPiece.CanBeMovedTo(Mouse.TargetTile.row(), Mouse.TargetTile.column())){
                     Main.AllowMove(this, Mouse.TargetTile);
                     Mouse.PlayerPiece = null;
-                    System.out.println("MOve");
+                    //   System.out.println("MOve");
 
                 }
             }
@@ -268,7 +234,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
 }
 
 public class Main implements Serializable {
-    public static GameState gameState = new GameState();
+    private static GameState gameState = new GameState();
     public static boolean underPromotion;
     public static ArrayList<Piece> WhitePieces = gameState.getWhitePieces();
     public static ArrayList<Piece> BlackPieces = gameState.getBlackPieces();
@@ -281,11 +247,11 @@ public class Main implements Serializable {
     public static void main(String[] args) throws IOException {
 
         // Always start Swing on the Event Dispatch Thread
-        SwingUtilities.invokeLater(() -> Main.createAndShowUI());
+        SwingUtilities.invokeLater(Main::createAndShowUI);
 
     }
     private static void createAndShowUI() {
-       
+
 
         JFrame frame = new JFrame("6x6 Button Grid");
 
@@ -299,7 +265,7 @@ public class Main implements Serializable {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
-        MainPanel.add(buttonPanel, BorderLayout.EAST);
+        MainPanel.add(buttonPanel, BorderLayout.WEST);
         @SuppressWarnings("unused")
         String[] textArray = {"Save Game", "Reset Game", "Open Game"};
         buttonPanel.add(Box.createVerticalGlue());
@@ -314,6 +280,8 @@ public class Main implements Serializable {
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setPreferredSize(new Dimension(150, 50)); // width x height
         button.setMaximumSize(new Dimension(150, 50)); // prevent resizing
+        button.setBackground(new Color(113, 183, 255));
+        button.setFocusPainted(false);
         buttonPanel.add(button);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
 
@@ -331,20 +299,22 @@ public class Main implements Serializable {
 
                         try (FileOutputStream fileStream = new FileOutputStream(selectedFile + ".ser");
                              ObjectOutputStream outputStream = new ObjectOutputStream(fileStream)) {
-                            System.out.println("Saving game state to " + selectedFile + ".ser");
-                            
+                            //    System.out.println("Saving game state to " + selectedFile + ".ser");
+
                             outputStream.writeObject(gameState);
 
                         } catch (IOException ex) {
-                            ex.printStackTrace(); // Or show error dialog
+                            ex.printStackTrace();
                         }
                     }
                 }
             }
         });
         SaveGame.setAlignmentX(Component.CENTER_ALIGNMENT);
-        SaveGame.setPreferredSize(new Dimension(150, 50)); // width x height
-        SaveGame.setMaximumSize(new Dimension(150, 50)); // prevent resizing
+        SaveGame.setPreferredSize(new Dimension(150, 50));
+        SaveGame.setMaximumSize(new Dimension(150, 50));
+        SaveGame.setBackground(new Color(113, 183, 255));
+        SaveGame.setFocusPainted(false);
         buttonPanel.add(SaveGame);
 
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
@@ -371,12 +341,9 @@ public class Main implements Serializable {
                             GameState data = (GameState) outputStream.readObject();
                             emptyBoard();
                             restartGame(data);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        } catch (ClassNotFoundException ex) {
+                        } catch (IOException | ClassNotFoundException ex) {
                             throw new RuntimeException(ex);
                         }
-
                     }
                 }
             }
@@ -384,6 +351,8 @@ public class Main implements Serializable {
         OpenGame.setAlignmentX(Component.CENTER_ALIGNMENT);
         OpenGame.setPreferredSize(new Dimension(150, 50)); // width x height
         OpenGame.setMaximumSize(new Dimension(150, 50)); // prevent resizing
+        OpenGame.setBackground(new Color(113, 183, 255));
+        OpenGame.setFocusPainted(false);
         buttonPanel.add(OpenGame);
 
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
@@ -488,13 +457,11 @@ public class Main implements Serializable {
             Pieces = BlackPieces;
         }
 
-
         for (Tile eachTile : king.getAttackRadius()){
             if (king.CanBeMovedTo(eachTile.row(), eachTile.column())){
                 return false;
             }
         }
-
         // king has no safe square.
         // Is there any piece that can move in its attack radius?
 
@@ -505,7 +472,6 @@ public class Main implements Serializable {
                 }
             }
         }
-
         return true;
     }
 
@@ -529,7 +495,8 @@ public class Main implements Serializable {
             return false;
         }
 
-        System.out.println("CHECK COUNT = " + checkCount);
+
+        //  System.out.println("CHECK COUNT = " + checkCount);
 
         //is there any safe square for king?
         boolean SafeSquare = false;
@@ -542,18 +509,12 @@ public class Main implements Serializable {
         // double check
         if (checkCount > 1) {
             //is there any safe square for king?
-            if (SafeSquare){
-                return false;
-            }
-            return true;
+            return !SafeSquare;
         }
-
-
         // single check;
         if (SafeSquare){
             return false;
         }
-
         Piece attack = Attacker.getFirst();
         if (attack instanceof Rook || attack instanceof Queen || attack instanceof Bishop){
             for (Piece eachPiece : myPiece){
@@ -564,14 +525,11 @@ public class Main implements Serializable {
                 }
             }
         }
-
         // given that king has no safe square and the piece that is checking is knight or pawn, then the only way is to capture the attacking pieces
         if (attack instanceof Knight || attack instanceof Pawn){
             for (Piece eachPiece : myPiece){
-                for (@SuppressWarnings("unused") Tile eachTile : eachPiece.getAttackRadius()){
-                    if (eachPiece.CanBeMovedTo(attack.row(), attack.column())){
-                        return false;
-                    }
+                if (eachPiece.CanBeMovedTo(attack.row(), attack.column())){
+                    return false;
                 }
             }
         }
@@ -606,13 +564,8 @@ public class Main implements Serializable {
             dc = 0;
         }
 
-
-
         path.addAll(CheckSightHelper(attacker, king, dr,dc));
         return path;
-
-
-
     }
 
     private static ArrayList<Tile> CheckSightHelper(Piece attacker, Piece king, int dr, int dc){
@@ -674,9 +627,7 @@ public class Main implements Serializable {
                 BlackPieces.remove(to.getPiece());
             }
         }
-
         from.getPiece().updatePosition(to.row(), to.column());
-
         to.setPiece(from.getPiece());
         from.setPiece(null);
 
@@ -691,9 +642,6 @@ public class Main implements Serializable {
 
     }
 
-
-
-
     public static void Repaint(){
         for (Tile[] TileArray : board){
             for (Tile eachTile : TileArray){
@@ -702,50 +650,33 @@ public class Main implements Serializable {
                     eachTile.setText(null);
                 }
                 eachTile.setText(null);
-                if (eachTile.row() % 2 == eachTile.column() % 2){
-
-                    eachTile.setBackground(new Color(234, 221, 202));
-                } else{
-
-                    eachTile.setBackground(new Color(92, 64, 51));
-                }
-
+                eachTile.setBackground(eachTile.getOriginalBackground());
                 eachTile.componentResized(null);
             }
         }
     }
 
     public static boolean pseudoLegalMove(Tile tileFrom, Tile tileTo) {
-        System.out.println("WHITE KING POSITION" + " " + WhiteKing.row() + " " + WhiteKing.column());
-        System.out.println("BLACK KING POSITION" + " " + BlackKing.row() + " " + BlackKing.column());
-        System.out.println("DEBUG " + tileFrom.row() + "  " + tileFrom.column());
-        System.out.println(gameState.getCurrentRound());
+
+        //    System.out.println(gameState.getCurrentRound());
         if (gameState.getCurrentRound() != tileFrom.getPiece().color){
             return false;
         }
 
         int FromRow = tileFrom.row();
         int FromColumn = tileFrom.column();
-
         int ToRow = tileTo.row();
         int ToColumn = tileTo.column();
-
         Piece movingPiece = tileFrom.getPiece();
-
         Piece CapturePiece = tileTo.getPiece();
-
         Tile kingTile;
         ArrayList<Piece> EnemyPiece;
-
-
-
         // if capture Piece is not null
 
         tileTo.setPiece(movingPiece);
         tileFrom.setPiece(null);
         movingPiece.row = ToRow;
         movingPiece.column = ToColumn;
-
         if (movingPiece.color == -1){
             kingTile = board[WhiteKing.row][WhiteKing.column];
             EnemyPiece = BlackPieces;
@@ -764,14 +695,11 @@ public class Main implements Serializable {
                 break;
             }
         }
-
         // undo everything
         tileTo.setPiece(CapturePiece);
         if (CapturePiece != null){
             EnemyPiece.add(CapturePiece);
         }
-
-
         tileFrom.setPiece(movingPiece);
         movingPiece.row = FromRow;
         movingPiece.column = FromColumn;
@@ -790,15 +718,6 @@ public class Main implements Serializable {
             gameState.setCurrentRound(-1);
         }
 
-        System.out.println("CHANGE GAME STATE TO " + gameState.getCurrentRound());
-
-   
-//        if (getCheckCount(currentRound).size() > 0){
-//            System.out.println(color + " King in check check amount = " + getCheckCount(currentRound).toString());
-//        } else{
-//            System.out.println(color + " King not in check");
-//        }
-
         Piece king;
         if (gameState.getCurrentRound() == -1){
             king = WhiteKing;
@@ -806,37 +725,28 @@ public class Main implements Serializable {
             king = BlackKing;
         }
 
-        if (isStaletMate((King) king)){
-            System.out.println("StaleMate");
-        }
-
-
-
         if (isCheckMate((King) king)){
             System.out.println("CHECKMATE");
         } else{
-            System.out.println("NOT CHECKMATE");
+            if (isStaletMate((King) king)){
+                System.out.println("StaleMate");
+            } else{
+                System.out.println("NOT CHECKMATE");
+            }
         }
 
-        //System.out.println(WhitePieces);
-        //System.out.println(BlackPieces);
-
-        System.out.println(ChessConsolePrinter.printBoard(Main.board));
-
-       // rotateBoard(gridPanel, currentRound);
+        //   System.out.println(ChessConsolePrinter.printBoard(Main.board));
 
     }
-
     public static void emptyBoard(){
+        WhitePieces = null;
+        BlackPieces = null;
         for (Tile[] eachRow : board){
             for (Tile eachTile : eachRow){
                 eachTile.setPiece(null);
             }
         }
-
-
     }
-
 }
 
 abstract class Piece implements Serializable {
@@ -844,11 +754,11 @@ abstract class Piece implements Serializable {
     protected int row;
     protected int column;
     protected int color;
-    private String imagePath;
+    private final String imagePath;
 
 
     public Piece(int row, int column, String imagePath, int color){
-        try{  
+        try{
             InputStream input = getClass().getClassLoader().getResourceAsStream(imagePath);
             PieceImage = ImageIO.read(input);
         } catch (IOException e){
@@ -880,20 +790,15 @@ abstract class Piece implements Serializable {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
         }
-
         return PieceImage;
     }
     public abstract ArrayList<Tile> getAttackRadius();
 
-
     public ArrayList<Tile> helperRadius(int dr, int dc){
         ArrayList<Tile> PossibleTile = new ArrayList<>();
-
         int row = this.row() + dr;
         int column = this.column() + dc;
-
 
         while (row <= 7 && row >= 0 && column  <= 7 && column  >= 0) {
             if (Main.board[row][column].getPiece() == null){
@@ -906,7 +811,6 @@ abstract class Piece implements Serializable {
             row = row + dr;
             column = column + dc;
         }
-
         return PossibleTile;
     }
 
@@ -923,8 +827,6 @@ abstract class Piece implements Serializable {
 
         return Main.pseudoLegalMove(Main.board[this.row()][this.column()], Main.board[row][column]);
     }
-
-
 }
 
 
@@ -935,36 +837,27 @@ class King extends Piece{
 
     @Override
     public ArrayList<Tile> getAttackRadius() {
-
         ArrayList<Tile> PossibleTile = new ArrayList<>();
 
         int[] offset = {-1, 0, 1};
 
         for (int dy : offset){
             for (int dx : offset){
-                if (dy == 0 && dx == 0){
-                    continue;
-                } else{
+                if (!(dy == 0 && dx == 0)) {
                     if (row() + dy <= 7 && row() + dy >= 0 && column() + dx <= 7 && column() + dx >= 0){
-                        @SuppressWarnings("unused")
-                        Tile tile = Main.board[row() + dy][column() + dx];
                         PossibleTile.add(Main.board[row() + dy][column() + dx]);
                     }
-
                 }
             }
         }
         return PossibleTile;
     }
-
 }
-
 
 class Rook extends Piece{
     public Rook(int row, int column, String imagePath, int color){
         super(row, column, imagePath, color);
     }
-
 
     public ArrayList<Tile> getAttackRadius(){
         ArrayList<Tile> PossibleTile = new ArrayList<>();
@@ -975,27 +868,14 @@ class Rook extends Piece{
 
         return PossibleTile;
     }
-    // make sure to update the piece new position
-    @Override
-    public boolean CanBeMovedTo(int row, int column){
-        Tile tileTo = Main.board[row][column];
-        if (!getAttackRadius().contains(tileTo)){
-            return false;
-        }
-        if (tileTo.getPiece() != null && tileTo.getPiece().color == this.color){
-            return false;
-        }
-        return Main.pseudoLegalMove(Main.board[this.row()][this.column()], Main.board[row][column]);
-    }
-}
 
+}
 
 class Bishop extends Piece{
 
     public Bishop(int row, int column, String imagePath, int color) {
         super(row, column, imagePath, color);
     }
-
     @Override
     public ArrayList<Tile> getAttackRadius() {
         ArrayList<Tile> PossibleTile = new ArrayList<>();
@@ -1007,7 +887,6 @@ class Bishop extends Piece{
 
         return PossibleTile;
     }
-
 }
 
 class Knight extends Piece{
@@ -1032,9 +911,7 @@ class Knight extends Piece{
             }
         }
         return PossibleTile;
-
     }
-
 
 }
 
@@ -1047,7 +924,6 @@ class Queen extends Piece{
     @Override
     public ArrayList<Tile> getAttackRadius() {
         ArrayList<Tile> PossibleTile = new ArrayList<>();
-
         PossibleTile.addAll(helperRadius(1, 1));
         PossibleTile.addAll(helperRadius(1, -1));
         PossibleTile.addAll(helperRadius(-1, 1));
@@ -1059,24 +935,20 @@ class Queen extends Piece{
 
         return PossibleTile;
     }
-
 }
 
 class Pawn extends Piece{
 
     private boolean doubleMove = false;
 
-
     public Pawn(int row, int column, String imagePath, int color) {
         super(row, column, imagePath, color);
     }
-
     public void updatePosition(int newRow, int newColumn){
 
         if (Math.abs(this.row - newRow) >= 1){
             doubleMove = true;
         }
-
 
         super.updatePosition(newRow, newColumn);
 
@@ -1087,7 +959,7 @@ class Pawn extends Piece{
             }
         } else{
             if (row == 7){
-               displayPromotionScreen();
+                displayPromotionScreen();
             }
         }
 
@@ -1127,21 +999,19 @@ class Pawn extends Piece{
         JPanel gridPanel = new JPanel(new GridLayout(1, 4, 0, 0));
         gridPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-
-
         for (Piece eachPiece : option){
             JButton PieceOption = new JButton();
             PieceOption.setIcon(new ImageIcon(eachPiece.getImage()));
             PieceOption.addMouseListener(new MouseAdapter() {
-                 @Override
-                 public void mouseClicked(MouseEvent e) {
-                     Main.summonPiece(eachPiece);
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    Main.summonPiece(eachPiece);
 
-                     PieceSet.add(eachPiece);
-                     newFrame.dispatchEvent(new WindowEvent(newFrame, WindowEvent.WINDOW_CLOSING));
-                     Main.underPromotion = false;
-                 }
-             });
+                    PieceSet.add(eachPiece);
+                    newFrame.dispatchEvent(new WindowEvent(newFrame, WindowEvent.WINDOW_CLOSING));
+                    Main.underPromotion = false;
+                }
+            });
             gridPanel.add(PieceOption);
         }
         newFrame.setContentPane(gridPanel);
@@ -1155,8 +1025,6 @@ class Pawn extends Piece{
     public ArrayList<Tile> getAttackRadius() {
         ArrayList<Tile> PossiblePath = new ArrayList<>();
         int dr = 0;
-
-
         if (this.color == -1){
             dr = -1;
         } else{
@@ -1165,7 +1033,6 @@ class Pawn extends Piece{
 
         int row = this.row() + dr;
         int column = this.column();
-
 
         // just the straight forward path, not include attacking;
         if (!doubleMove){
@@ -1176,14 +1043,12 @@ class Pawn extends Piece{
                 } else{
                     break;
                 }
-
             }
         } else{
             if (row <= 7 && row >= 0 && Main.board[row][column].getPiece() == null) {
                 PossiblePath.add(Main.board[row][column]);
             }
         }
-
         row = this.row();
         column = this.column();
         int[] dc = {-1, 1};
@@ -1198,77 +1063,9 @@ class Pawn extends Piece{
             }
         }
         return PossiblePath;
-
     }
 }
 
-class ChessConsolePrinter {
 
-    private static String getSymbol(Piece piece){
-        
-        if (piece instanceof Pawn){
-            return " p ";
-        }
-        if (piece instanceof King){
-            return " k ";
-        }
-        if (piece instanceof Queen){
-            return " Q ";
-        }
-        if (piece instanceof Knight){
-            return " N ";
-        }
-        if (piece instanceof Rook){
-            return " R ";
-        }
-        if (piece instanceof Bishop){
-            return " B ";
-        }
-
-        return "   ";
-    }
-
-    public static String printBoard(Tile[][] board){
-        ArrayList<Piece> DebugWhite = new ArrayList<>(){
-            public String toString(){
-                String start = "[";
-                for (Piece eachPiece : this){
-                    start = start + getSymbol(eachPiece) + ", ";
-                }
-                start = start + " ]";
-                return start;
-            }
-        };
-        ArrayList<Piece> DebugBlack = new ArrayList<>(){
-            public String toString(){
-                String start = "[";
-                for (Piece eachPiece : this){
-                    start = start + getSymbol(eachPiece) + ", ";
-                }
-                start = start + " ]";
-                return start;
-            }
-        };
-        for (Piece eachPiece : Main.WhitePieces){
-            DebugWhite.add(eachPiece);
-        }
-        for (Piece eachPiece : Main.BlackPieces){
-            DebugBlack.add(eachPiece);
-        }
-
-        System.out.println("WHITE PIECE IS " + DebugWhite);
-        System.out.println("BLACK PIECE IS " + DebugBlack);
-        String boardString = "";
-
-        for (Tile[] subTile : board){
-            boardString = boardString + "[";
-            for (Tile eachTile : subTile){
-                boardString = boardString + getSymbol(eachTile.getPiece());
-            }
-            boardString = boardString + "]\n" ;
-        }
-        return boardString;
-    }
-}
-
+// try to implement socket programming and multithread for project based
 
