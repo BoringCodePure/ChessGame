@@ -3,15 +3,15 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
 
 class GameState implements Serializable{
     private int CurrentRound;
-    private ArrayList<Piece> WhitePieces = new ArrayList<>();
-    private ArrayList<Piece> BlackPieces = new ArrayList<>();
+    private final ArrayList<Piece> WhitePieces = new ArrayList<>();
+    private final ArrayList<Piece> BlackPieces = new ArrayList<>();
     private Piece WhiteKing;
     private Piece BlackKing;
     @Serial
@@ -203,10 +203,11 @@ class Tile extends JButton implements ComponentListener, MouseListener{
 
                 // move piece
                 if (Mouse.PlayerPiece.CanBeMovedTo(Mouse.TargetTile.row(), Mouse.TargetTile.column())){
-                    Main.AllowMove(this, Mouse.TargetTile);
+                    Main.AllowMove(this, Mouse.TargetTile, false);
                     Mouse.PlayerPiece = null;
                     //   System.out.println("MOve");
 
+                
                 }
             }
             Main.Repaint();
@@ -233,7 +234,7 @@ class Tile extends JButton implements ComponentListener, MouseListener{
     }
 }
 
-public class Main implements Serializable {
+class Main implements Serializable {
     private static GameState gameState = new GameState();
     public static boolean underPromotion;
     public static ArrayList<Piece> WhitePieces = gameState.getWhitePieces();
@@ -590,35 +591,7 @@ public class Main implements Serializable {
         return null;
     }
 
-    public static HashMap<Tile, Integer> getTileUnderAttack(int EnemyColor){
-        HashMap<Tile, Integer> AttackerPerTile = new HashMap<>();
-
-        ArrayList<Piece> EnemyPiece;
-        // white
-        if (EnemyColor == -1){
-            EnemyPiece = WhitePieces;
-        } else{
-            EnemyPiece = BlackPieces;
-        }
-
-
-        for (Piece eachPiece : EnemyPiece){
-
-            ArrayList<Tile> TileUnderAttacked = eachPiece.getAttackRadius();
-
-            for (Tile tile : TileUnderAttacked){
-                if (AttackerPerTile.containsKey(tile)){
-                    int count = AttackerPerTile.get(tile);
-                    AttackerPerTile.put(tile, count + 1);
-                } else{
-                    AttackerPerTile.put(tile, 1);
-                }
-            }
-        }
-        return AttackerPerTile;
-    }
-
-    public static void AllowMove(Tile from, Tile to){
+    public static void AllowMove(Tile from, Tile to, boolean IsCastle){
         // check for capture
         if (to.getPiece() != null){
             if (to.getPiece().color == -1){
@@ -631,7 +604,9 @@ public class Main implements Serializable {
         to.setPiece(from.getPiece());
         from.setPiece(null);
 
-        nextRound();
+        if (!IsCastle){
+            nextRound();
+        }
         Repaint();
     }
     public static void summonPiece(Piece newPiece){
@@ -773,6 +748,7 @@ abstract class Piece implements Serializable {
     public void updatePosition(int newRow, int newColumn){
         this.row = newRow;
         this.column = newColumn;
+        
     }
 
     public int row(){
@@ -815,6 +791,7 @@ abstract class Piece implements Serializable {
     }
 
     public boolean CanBeMovedTo(int row, int column){
+
         Tile tileTo = Main.board[row][column];
 
         if (!getAttackRadius().contains(tileTo)){
@@ -830,9 +807,20 @@ abstract class Piece implements Serializable {
 }
 
 
+
 class King extends Piece{
+
+    private boolean hasMoved = false;
+
     public King(int row, int column, String imagePath, int color){
         super(row, column, imagePath, color);
+      
+    }
+
+    @Override
+    public void updatePosition(int row, int column){
+        this.hasMoved = true;
+        super.updatePosition(row, column);
     }
 
     @Override
@@ -852,11 +840,132 @@ class King extends Piece{
         }
         return PossibleTile;
     }
+    //override the CanBeMovedTo to work with castling
+
+    @Override
+    public boolean CanBeMovedTo(int rowTo, int columnTo){
+
+
+        ArrayList<Piece> EnemyList;
+
+        boolean leftCastle = true;
+        boolean rightCastle = true;
+
+        if (this.color == -1){
+            EnemyList =  Main.BlackPieces;    
+        } else{
+            EnemyList = Main.WhitePieces;
+        }
+
+
+        // check if the king can be castled
+
+        Rook leftRook = null;
+        Rook rightRook = null;
+        
+        if (Main.board[row][0].getPiece() instanceof Rook Piece){
+            leftRook = Piece;
+        }
+        if (Main.board[row][7].getPiece() instanceof Rook Piece){
+            rightRook = Piece;
+        }
+
+        if (leftRook != null && !leftRook.hasMoved && !this.hasMoved){
+
+            System.out.println(1);
+            HashSet<Tile> leftPath = new HashSet<>();
+
+            int cols = leftRook.column + 1;
+
+            while (cols < this.column){
+
+                if (Main.board[row][cols].getPiece() != null){
+                    leftCastle = false;
+                    break;
+                }
+                leftPath.add(Main.board[row][cols]);
+                cols++;
+            }
+            if (leftCastle){
+                for (Piece eachPiece : EnemyList){
+                    for (Tile eachTile : eachPiece.getAttackRadius()){
+                        if (leftPath.contains(eachTile)){
+                            leftCastle = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else{
+            leftCastle = false;
+        }
+
+        if (rightRook != null && !rightRook.hasMoved && !this.hasMoved){
+            System.out.println(2);
+            HashSet<Tile> rightPath = new HashSet<>();
+
+            int cols = rightRook.column - 1;
+
+            while (cols > this.column){
+
+                if (Main.board[row][cols].getPiece() != null){
+                    rightCastle = false;
+                    break;
+                }
+                rightPath.add(Main.board[row][cols]);
+                cols--;
+            }
+            if (rightCastle){
+                for (Piece eachPiece : EnemyList){
+                    for (Tile eachTile : eachPiece.getAttackRadius()){
+                        if (rightPath.contains(eachTile)){
+                            rightCastle = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else{
+            rightCastle = false;
+        }
+
+        //If you can left castle
+
+        if (leftCastle && columnTo == 2){
+            Main.AllowMove(Main.board[this.row][leftRook.column], Main.board[this.row][3], true);
+            
+            return true;
+        }
+
+        if (rightCastle && columnTo == 6){
+            Main.AllowMove(Main.board[this.row][rightRook.column], Main.board[this.row][5], true);
+            return true;
+        }
+
+        // normal move
+
+        return super.CanBeMovedTo(rowTo, columnTo);
+
+
+    
+    
+        
+    }
+    
 }
 
 class Rook extends Piece{
+
+    protected boolean hasMoved = false;
+
     public Rook(int row, int column, String imagePath, int color){
         super(row, column, imagePath, color);
+    }
+
+    @Override
+    public void updatePosition(int newrow, int newcolumn){
+        hasMoved = true;
+        super.updatePosition(newrow, newcolumn);
     }
 
     public ArrayList<Tile> getAttackRadius(){
@@ -944,6 +1053,7 @@ class Pawn extends Piece{
     public Pawn(int row, int column, String imagePath, int color) {
         super(row, column, imagePath, color);
     }
+    @Override
     public void updatePosition(int newRow, int newColumn){
 
         if (Math.abs(this.row - newRow) >= 1){
