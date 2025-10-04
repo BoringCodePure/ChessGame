@@ -113,10 +113,11 @@ class Main implements Serializable {
                             throw new RuntimeException(ex);
                         }
                         try {
-                            ObjectInputStream outputStream = new ObjectInputStream(fileStream);
-                            GameState data = (GameState) outputStream.readObject();
-                            emptyBoard();
-                            restartGame(data);
+                            try (ObjectInputStream outputStream = new ObjectInputStream(fileStream)) {
+                                GameState data = (GameState) outputStream.readObject();
+                                emptyBoard();
+                                restartGame(data);
+                            }
                         } catch (IOException | ClassNotFoundException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -384,12 +385,11 @@ class Main implements Serializable {
         }
         Repaint();
     }
+
     public static void summonPiece(Piece newPiece){
         int row = newPiece.row();
         int column = newPiece.column();
-
         board[row][column].setPiece((newPiece));
-
     }
 
     public static void Repaint(){
@@ -477,6 +477,14 @@ class Main implements Serializable {
 
         if (isCheckMate((King) king)){
             System.out.println("CHECKMATE");
+            String resultText;
+            if (king.color == -1){
+                resultText = "White King Lose, Black King Win";
+            } else{
+                resultText = "Black King Lose, White King Win";
+            }
+
+            Main.displayResult(resultText);
         } else{
             if (isStaletMate((King) king)){
                 System.out.println("StaleMate");
@@ -494,6 +502,18 @@ class Main implements Serializable {
                 eachTile.setPiece(null);
             }
         }
+    }
+
+    public static void displayResult(String text){
+        JFrame loseFrame = new JFrame();
+        loseFrame.setSize(250, 100);
+        loseFrame.setLayout(new GridLayout(1, 1));
+
+        loseFrame.add(new JButton(text));
+        loseFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loseFrame.setLocationRelativeTo(null);
+
+        loseFrame.setVisible(true);
     }
 }
 

@@ -50,6 +50,10 @@ class King extends Piece{
             EnemyList = Main.WhitePieces;
         }
 
+        if (!Main.getCheckCount(this.color).isEmpty()){
+            return super.CanBeMovedTo(rowTo, columnTo);
+        }
+
 
         // check if the king can be castled
 
