@@ -12,15 +12,31 @@ public class ClientThread implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run(){
         while (!Thread.currentThread().isInterrupted()){
             try{
                 if (readData.ready()){
-                    System.out.println(readData.readLine());
+
+                    String message = readData.readLine();
+
+                    if (message.equals("end")){
+                        Thread.currentThread().interrupt();
+                    } else{
+                        System.out.println(message);
+                    }
                 }
             } catch (IOException e){
                 
             }
         }
+
+        try{
+            readData.close();
+        } catch (IOException e){
+            
+        }
+
+
+        Main.receivedDisconnection();
     }
 }

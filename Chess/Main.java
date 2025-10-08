@@ -1,17 +1,14 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 
-import bitboard.client;
 
 
 
@@ -41,7 +38,14 @@ class Main implements Serializable {
 
         JFrame frame = new JFrame("6x6 Button Grid");
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e){
+                sendDisconnection();
+                frame.dispose();
+            }
+        });
 
         JPanel MainPanel = new JPanel(new BorderLayout());
         JPanel gridPanel = new JPanel(new GridLayout(ROWS, COLS, 0, 0));
@@ -52,8 +56,6 @@ class Main implements Serializable {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
         MainPanel.add(buttonPanel, BorderLayout.WEST);
-        @SuppressWarnings("unused")
-        String[] textArray = {"Save Game", "Reset Game", "Open Game"};
         buttonPanel.add(Box.createVerticalGlue());
         JButton button = new JButton("Restart Game");
         button.addMouseListener(new MouseAdapter() {
@@ -71,35 +73,11 @@ class Main implements Serializable {
         buttonPanel.add(button);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
 
-        JButton Server = new JButton("Host Server");
-        Server.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e){
-                //Start a connection?
-
-                
-            }
-        });
-
         JButton Host = new JButton("Host server");
         Host.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
                 try {
-                    ServerSocket server = new ServerSocket(9700);
-
-                    clientSocket = server.accept();
-
-                    System.out.println(clientSocket);
-
-                    sendToClient = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-                    
-                    // Listening to the client:
-
-                    ServerThread s1 = new ServerThread(clientSocket);
-
-                    Thread serverThread = new Thread(s1);
-
-                    serverThread.start();
-
+                    startServer();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -118,17 +96,11 @@ class Main implements Serializable {
             public void mouseClicked(MouseEvent e){
                 try{
                     server = new Socket("localhost", 9700);
-
-                    sendToServer = new BufferedWriter(new OutputStreamWriter(server.getOutputStream()));
-                    
-                    ClientThread c1 = new ClientThread(server);
-                    
+                    sendToServer = new BufferedWriter(new OutputStreamWriter(server.getOutputStream()));                   
+                    ClientThread c1 = new ClientThread(server);               
                     Thread clientThread = new Thread(c1);
-
                     clientThread.start();
-
                 } catch (IOException e1){
-
                 }
             } 
         });
@@ -144,6 +116,7 @@ class Main implements Serializable {
 
         JButton SaveGame = new JButton("Save Game");
         SaveGame.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e){
                 if (!underPromotion){
                     JFileChooser fileChooser = new JFileChooser();
@@ -159,7 +132,6 @@ class Main implements Serializable {
                             outputStream.writeObject(gameState);
 
                         } catch (IOException ex) {
-                            ex.printStackTrace();
                         }
                     }
                 }
@@ -223,6 +195,18 @@ class Main implements Serializable {
         frame.setSize(1100, 1000);// size to fit contents
         frame.setLocationRelativeTo(null); // center on screen
         frame.setVisible(true);
+    }
+
+    private static void startServer() throws IOException{
+
+        ServerSocket server = new ServerSocket(9700);
+        clientSocket = server.accept();
+        sendToClient = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+        // Listening to the client:
+        ServerThread s1 = new ServerThread(clientSocket);
+        Thread serverThread = new Thread(s1);
+        serverThread.start();
+
     }
 
     private static void startGame(JPanel gridPanel){
@@ -396,7 +380,7 @@ class Main implements Serializable {
 
     private static HashSet<Tile> getCheckSight(Piece attacker, King king){
 
-        HashSet<Tile> path = new HashSet<Tile>();
+        HashSet<Tile> path = new HashSet<>();
 
         int dr = 0;
         int dc = 0;
@@ -428,7 +412,7 @@ class Main implements Serializable {
     private static HashSet<Tile> CheckSightHelper(Piece attacker, Piece king, int dr, int dc){
 
 
-        HashSet<Tile> path = new HashSet<Tile>();
+        HashSet<Tile> path = new HashSet<>();
         path.add(board[attacker.row()][attacker.column()]);
 
         int row = attacker.row() + dr;
@@ -615,6 +599,44 @@ class Main implements Serializable {
         loseFrame.setLocationRelativeTo(null);
 
         loseFrame.setVisible(true);
+    }
+
+    private static void sendDisconnection(){
+        try {
+            if (sendToClient != null){
+                sendToClient.write("end");
+                sendToClient.newLine();
+                sendToClient.flush();
+            } else if (sendToServer != null){
+                sendToServer.write("end");
+                sendToServer.newLine();
+                sendToServer.flush();
+            }
+        } catch (IOException e) {
+
+        }
+    }
+
+    public static void receivedDisconnection(){
+
+        try {
+            sendToClient.close();
+            sendToServer.close();
+        } catch (IOException e) {
+        }
+
+        JFrame DisconnectionFrame = new JFrame();
+        DisconnectionFrame.setSize(300, 100);
+        DisconnectionFrame.setLayout(new GridLayout(1, 1));
+
+        DisconnectionFrame.add(new JButton("The opponent have disconnceted You win"));
+        DisconnectionFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        DisconnectionFrame.setLocationRelativeTo(null);
+
+        DisconnectionFrame.setVisible(true);
+
+        restartGame(new GameState());
+        
     }
 }
 
