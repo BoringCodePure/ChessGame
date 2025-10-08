@@ -2,14 +2,24 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+
+import bitboard.client;
 
 
 
 class Main implements Serializable {
+    private static Socket server;
+    private static Socket clientSocket;
+    private static BufferedWriter sendToServer;
+    private static BufferedWriter sendToClient;
     private static GameState gameState = new GameState();
     public static boolean underPromotion;
     public static ArrayList<Piece> WhitePieces = gameState.getWhitePieces();
@@ -61,7 +71,76 @@ class Main implements Serializable {
         buttonPanel.add(button);
         buttonPanel.add(Box.createRigidArea(new Dimension(0, 15))); // space between buttons
 
+        JButton Server = new JButton("Host Server");
+        Server.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e){
+                //Start a connection?
 
+                
+            }
+        });
+
+        JButton Host = new JButton("Host server");
+        Host.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e){
+                try {
+                    ServerSocket server = new ServerSocket(9700);
+
+                    clientSocket = server.accept();
+
+                    System.out.println(clientSocket);
+
+                    sendToClient = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                    
+                    // Listening to the client:
+
+                    ServerThread s1 = new ServerThread(clientSocket);
+
+                    Thread serverThread = new Thread(s1);
+
+                    serverThread.start();
+
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        Host.setAlignmentX(Component.CENTER_ALIGNMENT);
+        Host.setPreferredSize(new Dimension(150, 50));
+        Host.setMaximumSize(new Dimension(150, 50));
+        Host.setBackground(new Color(113, 183, 255));
+        Host.setFocusPainted(false);
+        buttonPanel.add(Host);
+
+        JButton Connect = new JButton("Connect");
+        Connect.addMouseListener(new MouseInputAdapter() {
+            public void mouseClicked(MouseEvent e){
+                try{
+                    server = new Socket("localhost", 9700);
+
+                    sendToServer = new BufferedWriter(new OutputStreamWriter(server.getOutputStream()));
+                    
+                    ClientThread c1 = new ClientThread(server);
+                    
+                    Thread clientThread = new Thread(c1);
+
+                    clientThread.start();
+
+                } catch (IOException e1){
+
+                }
+            } 
+        });
+
+        Connect.setAlignmentX(Component.CENTER_ALIGNMENT);
+        Connect.setPreferredSize(new Dimension(150, 50));
+        Connect.setMaximumSize(new Dimension(150, 50));
+        Connect.setBackground(new Color(113, 183, 255));
+        Connect.setFocusPainted(false);
+        buttonPanel.add(Connect);
+
+        
 
         JButton SaveGame = new JButton("Save Game");
         SaveGame.addMouseListener(new MouseAdapter() {
@@ -86,6 +165,7 @@ class Main implements Serializable {
                 }
             }
         });
+
         SaveGame.setAlignmentX(Component.CENTER_ALIGNMENT);
         SaveGame.setPreferredSize(new Dimension(150, 50));
         SaveGame.setMaximumSize(new Dimension(150, 50));
@@ -383,6 +463,27 @@ class Main implements Serializable {
         if (!IsCastle){
             nextRound();
         }
+
+
+        try {
+            if (sendToClient != null){
+                System.out.println("move");
+                sendToClient.write("Move : " + from.row() + " " + from.column() + " to " + to.row() + " " + to.column());
+                sendToClient.newLine();
+                sendToClient.flush();
+            } else if (sendToServer != null){
+                System.out.println("move");
+                sendToServer.write("Move : " + from.row() + " " + from.column() + " to " + to.row() + " " + to.column());
+                sendToServer.newLine();
+                sendToServer.flush();
+            }
+            
+        } catch (SocketException e) {
+            System.out.println("Connection Close");
+        } catch (IOException e){
+
+        }
+
         Repaint();
     }
 
